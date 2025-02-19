@@ -1,0 +1,111 @@
+.settings-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 20px;
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+  background: #0a0a0a;
+  color: #ffffff;
+  padding-bottom: 80px; /* Space for the bottom nav bar */
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Settings Title */
+.settings-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #00f2fe;
+  background: linear-gradient(45deg, #2b4141, #084983);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+}
+
+/* Settings Description */
+.settings-description {
+  font-size: 18px;
+  color: #b0b0b0;
+  max-width: 600px;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+/* Settings Options Container */
+.settings-options {
+  text-align: left;
+  width: 100%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Clickable "Update Profile" */
+.settings-options h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #ff7eb3;
+  margin: 10px 0;
+  cursor: pointer;
+  transition: color 0.3s ease-in-out;
+}
+
+.settings-options h2:hover {
+  color: #ff3e4d;
+  text-decoration: underline;
+}
+
+/* Settings Button */
+.settings-button {
+  margin-top: 20px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff7eb3, #ff5e62);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  box-shadow: 0 4px 10px rgba(255, 94, 98, 0.3);
+}
+
+.settings-button:hover {
+  background: linear-gradient(135deg, #ff5e62, #ff3e4d);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 94, 98, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .settings-title {
+      font-size: 28px;
+  }
+
+  .settings-description {
+      font-size: 16px;
+  }
+
+  .settings-options {
+      padding: 15px;
+  }
+
+  .settings-options h2 {
+      font-size: 20px;
+  }
+
+  .settings-button {
+      font-size: 14px;
+      padding: 10px 20px;
+  }
+}
