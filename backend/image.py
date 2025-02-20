@@ -2,16 +2,25 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 import os
 import base64
 import io
-from PIL import Image
+import json
 import numpy as np
+from PIL import Image
 from mainmodel1 import predict_subtype_with_heatmap
 
 router = APIRouter()
 
-# Configure upload directory
+# Configure directories
 UPLOAD_DIR = "uploads"
-if not os.path.exists(UPLOAD_DIR):
-    os.makedirs(UPLOAD_DIR)
+REPORTS_FILE = "reports.json"
+
+# Ensure the upload directory exists
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Ensure reports.json exists
+if not os.path.exists(REPORTS_FILE):
+    with open(REPORTS_FILE, "w") as f:
+        json.dump({"reports": []}, f)  # Initialize empty reports list
+
 
 @router.post("/upload")
 async def upload_and_predict(file: UploadFile = File(...)):
@@ -24,10 +33,11 @@ async def upload_and_predict(file: UploadFile = File(...)):
 
         # Get prediction and heatmap
         predicted_subtype, confidence, heatmap = predict_subtype_with_heatmap(file_path)
-        
+
+        # Encode original image
         with open(file_path, "rb") as image_file:
             original_image_str = base64.b64encode(image_file.read()).decode()
-        
+
         # Normalize heatmap and convert to base64
         heatmap = np.uint8(255 * heatmap)
         heatmap = Image.fromarray(heatmap)
@@ -35,7 +45,8 @@ async def upload_and_predict(file: UploadFile = File(...)):
         heatmap.save(buffered, format="PNG")
         heatmap_str = base64.b64encode(buffered.getvalue()).decode()
 
-        return {
+        # Create report data
+        report_data = {
             "filename": file.filename,
             "predicted_subtype": predicted_subtype,
             "confidence": f"{confidence:.2f}%",
@@ -43,13 +54,49 @@ async def upload_and_predict(file: UploadFile = File(...)):
             "original_image": f"data:image/png;base64,{original_image_str}"
         }
 
+        # Append to reports.json
+        with open(REPORTS_FILE, "r+") as report_file:
+            data = json.load(report_file)
+            data["reports"].append(report_data)
+            report_file.seek(0)  # Move to beginning of file
+            json.dump(data, report_file, indent=4)
+
+        return report_data
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/list")
-async def list_images():
+
+@router.get("/reports")
+async def get_reports():
     try:
-        files = os.listdir(UPLOAD_DIR)
-        return {"images": files}
+        with open(REPORTS_FILE, "r") as report_file:
+            data = json.load(report_file)
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/reports/{filename}")
+async def delete_report(filename: str):
+    try:
+        # Read existing reports
+        with open(REPORTS_FILE, "r") as report_file:
+            data = json.load(report_file)
+
+        # Filter out the report to delete
+        new_reports = [report for report in data["reports"] if report["filename"] != filename]
+
+        # Update the reports file
+        with open(REPORTS_FILE, "w") as report_file:
+            json.dump({"reports": new_reports}, report_file, indent=4)
+
+        # Delete uploaded image file
+        image_path = os.path.join(UPLOAD_DIR, filename)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+        return {"message": "Report deleted successfully"}
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

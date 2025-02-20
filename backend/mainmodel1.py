@@ -35,7 +35,7 @@ def load_model(model_path):
     model.eval()
     return model
 
-model_path = "C://Users//Neelesh//SampleModel//breast_cancer_cnn.pth"
+model_path = "/Users/trishajanath/MlModel/breast_cancer_cnn.pth"
 model = load_model(model_path)
 print("✅ Model Loaded Successfully!")
 torch.manual_seed(42)

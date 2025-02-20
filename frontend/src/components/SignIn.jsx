@@ -23,6 +23,8 @@ const SignIn = () => {
     e.preventDefault();
     setError('');
 
+    console.log('Submitting form with data:', formData);
+
     try {
       const response = await fetch('http://127.0.0.1:8000/auth/login', {
         method: 'POST',
@@ -34,17 +36,26 @@ const SignIn = () => {
       });
 
       const data = await response.json();
+      console.log('Response data:', data);
+
       if (!response.ok) {
         throw new Error(data.detail || 'Login failed');
       }
 
       // Store the access token
       localStorage.setItem('token', data.access_token);
-      navigate('/home');
+      console.log('Token stored:', data.access_token);
+
+      navigate('/home', { replace: true });
+      
+
+      
+      console.log('Navigating to home page');
     } catch (error) {
+      console.error('Error during sign in:', error);
       setError(error.message || 'An error occurred during sign in');
     }
-};
+  };
 
   const handleForgotPasswordClick = () => {
     navigate('/forgot-password');
