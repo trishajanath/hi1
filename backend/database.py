@@ -2,7 +2,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import Depends
 
 # MongoDB connection settings
-MONGO_URI = "mongodb://localhost:27017"
+MONGO_URI = "mongodb://127.0.0.1:27017/"
+
 DB_NAME = "EzHealth"
 
 # Configure MongoDB client

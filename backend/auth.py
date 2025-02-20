@@ -6,6 +6,7 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta
 import os
 from database import db
+from typing import Optional
 
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
@@ -24,6 +25,12 @@ class UserSignup(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    
+class UserUpdate(BaseModel):
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
+    currentPassword: Optional[str] = None
+    newPassword: Optional[str] = None
 
 def hash_password(password: str):
     return pwd_context.hash(password)
@@ -72,40 +79,43 @@ async def login(user: UserLogin):
     
     return {"access_token": token, "token_type": "bearer"}
 
-@router.post('/update-profile')
-async def update(user: UserSignup):
-    """Updates user profile information."""
-    db_user = await db.users.find_one({"email": user.email})
-    
+@router.put('/update-profile')
+async def update_profile(
+    update_data: UserUpdate,
+    current_user_email: str = Depends(get_current_user)
+):
+    # Get user from database
+    db_user = await db.users.find_one({"email": current_user_email})
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # If password is provided, verify it
-    if user.password and not verify_password(user.password, db_user["hashed_password"]):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+    # Verify current password
+    if not verify_password(update_data.currentPassword, db_user["hashed_password"]):
+        raise HTTPException(status_code=400, detail="Invalid current password")
 
     # Prepare update fields
-    update_fields = {
-        "firstName": user.firstName,
-        "lastName": user.lastName,
-        "email": user.email,
-        "updated_at": datetime.utcnow(),
-    }
+    update_fields = {}
+    if update_data.firstName:
+        update_fields["firstName"] = update_data.firstName
+    if update_data.lastName:
+        update_fields["lastName"] = update_data.lastName
+    if update_data.newPassword:
+        update_fields["hashed_password"] = hash_password(update_data.newPassword)
 
-    # If user provides a new password, hash and update it
-    if user.new_password:
-        update_fields["hashed_password"] = hash_password(user.new_password)
+    # If no fields to update
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
 
-    await db.users.update_one({"email": user.email}, {"$set": update_fields})
+    # Perform update
+    update_fields["updated_at"] = datetime.utcnow()
+    await db.users.update_one(
+        {"email": current_user_email},
+        {"$set": update_fields}
+    )
 
     return {
         "message": "Profile updated successfully",
-        "updated_user": {
-            "firstName": user.firstName,
-            "lastName": user.lastName,
-            "email": user.email,
-            "updated_at": update_fields["updated_at"]
-        }
+        "updated_fields": list(update_fields.keys())
     }
 
 @router.get("/home")
