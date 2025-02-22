@@ -31,36 +31,42 @@ const UploadSpecimen = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+  
+    if (!selectedFile || !patientName || !patientID || !gender || !specimenType) {
+      alert("Please fill in all patient details and select a file before submitting.");
+      return;
+    }
+  
     try {
       const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('patientName', patientName);
-      formData.append('patientID', patientID);
-      formData.append('gender', gender);
-      formData.append('specimenType', specimenType);
-
-      const response = await fetch('http://127.0.0.1:8000/images/upload', {
-        method: 'POST',
+      formData.append("file", selectedFile);
+      formData.append("patientName", patientName);
+      formData.append("patientID", patientID);
+      formData.append("gender", gender);
+      formData.append("specimenType", specimenType);
+  
+      const response = await fetch("http://127.0.0.1:8000/images/upload", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: formData
+        body: formData,
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Upload failed');
+        throw new Error(errorData.detail || "Upload failed");
       }
-
+  
       const data = await response.json();
-      setUploadStatus('success');
-      navigate('/analysis', { state: { imageData: data } });
+      setUploadStatus("Upload successful!");
+  
+      navigate("/analysis", { state: { imageData: data, patientInfo: { patientName, patientID, gender, specimenType } } });
     } catch (error) {
-      setUploadStatus('error');
-      console.error('Upload error:', error);
+      setUploadStatus("Upload failed. Please try again.");
+      console.error("Upload error:", error);
     }
-};
+  };
 
   return (
     <div className="upload-specimen-container">

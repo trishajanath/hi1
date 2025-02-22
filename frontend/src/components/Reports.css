@@ -7,9 +7,14 @@
  
  h2 {
   text-align: center;
-  color: #333;
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, #2b4141, #084983);
+  background-clip: text;
+  -webkit-background-clip: text; /* For Chrome, Safari */
+  -webkit-text-fill-color: transparent; 
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.05em;
  }
  
  
@@ -56,6 +61,7 @@
   gap: 15px;
   margin-top: 10px;
   width: 100%;
+  max-width: 400px;
  }
  
  

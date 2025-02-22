@@ -76,17 +76,6 @@ const Analysis = () => {
                 </div>
               </div>
             </div>
-            {/* Action Buttons */}
-            <div className="action-buttons">
-              <button className="action-btn share-btn">
-                <FiShare2 className="icon" />
-                Share Case
-              </button>
-              <button className="action-btn download-btn">
-                <FiDownload className="icon" />
-                Download Report
-              </button>
-            </div>
           </>
         )}
       </div>

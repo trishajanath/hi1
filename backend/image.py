@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException,Form
 import os
 import base64
 import io
@@ -23,9 +23,16 @@ if not os.path.exists(REPORTS_FILE):
 
 
 @router.post("/upload")
-async def upload_and_predict(file: UploadFile = File(...)):
+async def upload_and_predict(
+    file: UploadFile = File(...),
+    patientName: str = Form(...),
+    patientID: str = Form(...),
+    gender: str = Form(...),
+    specimenType: str = Form(...)
+):
     try:
         # Save the uploaded file
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
         file_path = os.path.join(UPLOAD_DIR, file.filename)
         with open(file_path, "wb") as buffer:
             content = await file.read()
@@ -45,9 +52,13 @@ async def upload_and_predict(file: UploadFile = File(...)):
         heatmap.save(buffered, format="PNG")
         heatmap_str = base64.b64encode(buffered.getvalue()).decode()
 
-        # Create report data
+        # Create report data with patient details
         report_data = {
             "filename": file.filename,
+            "patientName": patientName,
+            "patientID": patientID,
+            "gender": gender,
+            "specimenType": specimenType,
             "predicted_subtype": predicted_subtype,
             "confidence": f"{confidence:.2f}%",
             "heatmap": f"data:image/png;base64,{heatmap_str}",
@@ -55,6 +66,10 @@ async def upload_and_predict(file: UploadFile = File(...)):
         }
 
         # Append to reports.json
+        if not os.path.exists(REPORTS_FILE):
+            with open(REPORTS_FILE, "w") as report_file:
+                json.dump({"reports": []}, report_file)
+
         with open(REPORTS_FILE, "r+") as report_file:
             data = json.load(report_file)
             data["reports"].append(report_data)
@@ -65,7 +80,6 @@ async def upload_and_predict(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @router.get("/reports")
 async def get_reports():
